@@ -1,5 +1,4 @@
 # go-requests
-=======
 Request builder for flexible and composable requests.
 
 
@@ -25,5 +24,3 @@ token = "super-secret"// update token
 jsonResp, err := builder.ExecJSON()
 
 ```
-
-=======
