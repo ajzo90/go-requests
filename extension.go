@@ -7,14 +7,18 @@ import (
 	"net/http"
 )
 
+// ExtendedRequest contain more advanced functionality.
+// The purpose is to separate those from the visible methods in Request to make the package easier to use
 type ExtendedRequest struct {
 	*Request
 }
 
+// Extended returns the *ExtendedRequest
 func (req *Request) Extended() *ExtendedRequest {
 	return &ExtendedRequest{req}
 }
 
+// Write writes the request into w
 func (req *ExtendedRequest) Write(w io.Writer) error {
 	if r, err := req.NewRequest(); err != nil {
 		return err
@@ -23,6 +27,7 @@ func (req *ExtendedRequest) Write(w io.Writer) error {
 	}
 }
 
+// NewRequest builds a *http.Request
 func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
 	var bodyR io.Reader
 
@@ -54,6 +59,7 @@ func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
 	return request, err
 }
 
+// Do execute do the request. Caller must close resp.Body in case of non-nil error
 func (req *ExtendedRequest) Do() (*http.Response, error) {
 	request, err := req.NewRequest()
 	if err != nil {
@@ -62,10 +68,9 @@ func (req *ExtendedRequest) Do() (*http.Response, error) {
 	return req.doer.Do(request)
 }
 
+// Clone clones the *Request to allow concurrent usage of the same base configuration
 func (req *ExtendedRequest) Clone() *Request {
-
 	var newClient = New(req.url).Method(req.method)
-
 	newClient.body = req.body
 	for k, v := range req.header {
 		newClient.header[k] = v
@@ -73,7 +78,5 @@ func (req *ExtendedRequest) Clone() *Request {
 	for k, v := range req.query {
 		newClient.query[k] = v
 	}
-
 	return newClient
-
 }

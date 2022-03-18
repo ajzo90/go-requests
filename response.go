@@ -8,21 +8,28 @@ import (
 	"github.com/valyala/fastjson"
 )
 
+// JSONResponse is holding the JSON specific response
 type JSONResponse struct {
 	response
 	v *fastjson.Value
 }
 
+// Get string from JSON body
 func (r *JSONResponse) Get(keys ...string) string {
 	return string(r.v.GetStringBytes(keys...))
 }
+
+// GetInt gets int from JSON body
 func (r *JSONResponse) GetInt(keys ...string) int {
 	return r.v.GetInt(keys...)
 }
+
+// GetArray gets array from JSON body
 func (r *JSONResponse) GetArray(keys ...string) []*fastjson.Value {
 	return r.v.GetArray(keys...)
 }
 
+// ExecJSON executes the request and return a *JSONResponse
 func (req *Request) ExecJSON() (*JSONResponse, error) {
 	req.Header("accept", applicationJSON)
 	req.respBodyBuf = make([]byte, 1000)
@@ -33,7 +40,7 @@ func (req *Request) ExecJSON() (*JSONResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	if req.respBodyBuf, err = ReadToBuf(req.respBodyBuf, resp.Body); err != nil {
+	if req.respBodyBuf, err = readToBuf(req.respBodyBuf, resp.Body); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +61,7 @@ type response struct {
 	raw *http.Response
 }
 
-func ReadToBuf(buf []byte, r io.Reader) ([]byte, error) {
+func readToBuf(buf []byte, r io.Reader) ([]byte, error) {
 	buf = buf[:cap(buf)]
 	var n int
 	for n < len(buf) {
