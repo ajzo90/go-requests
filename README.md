@@ -2,8 +2,8 @@
 Request builder for flexible and composable requests.
 
 
-[![CICD](https://github.com/ajzo90/go-requests/actions/workflows/ci.yml/badge.svg)](https://github.com/ajzo90/g-requests/actions/workflows/ci.yml)
-[![CICD](https://github.com/ajzo90/go-requests/actions/workflows/go.yml/badge.svg)](https://github.com/ajzo90/g-requests/actions/workflows/go.yml)
+[![CICD](https://github.com/ajzo90/go-requests/actions/workflows/ci.yml/badge.svg)](https://github.com/ajzo90/go-requests/actions/workflows/ci.yml)
+[![CICD](https://github.com/ajzo90/go-requests/actions/workflows/go.yml/badge.svg)](https://github.com/ajzo90/go-requests/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ajzo90/go-requests)](https://goreportcard.com/report/github.com/ajzo90/go-requests)
 [![GoDoc](https://godoc.org/github.com/ajzo90/go-requests?status.svg)](https://godoc.org/github.com/ajzo90/go-requests)
 [![License](https://shields.io/github/license/ajzo90/go-requests)](LICENSE)
