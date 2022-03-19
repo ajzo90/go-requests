@@ -43,7 +43,7 @@ func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
 		bodyR = bytes.NewBufferString(req.body.String())
 	}
 
-	var request, err = http.NewRequest(req.method.String(), req.url.String(), bodyR)
+	request, err := http.NewRequest(req.method.String(), req.url.String(), bodyR)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
 		if request.URL.RawQuery != "" {
 			return nil, fmt.Errorf("raw query and query param not allowed")
 		}
-		var q = request.URL.Query()
+		q := request.URL.Query()
 		for k, v := range req.query {
 			q.Add(k, v.String())
 		}
@@ -76,7 +76,7 @@ func (req *ExtendedRequest) Do() (*http.Response, error) {
 
 // Clone clones the *Request to allow concurrent usage of the same base configuration
 func (req *ExtendedRequest) Clone() *Request {
-	var newClient = New("")
+	newClient := New("")
 	newClient.body = req.body
 	newClient.url = req.url
 	newClient.method = req.method

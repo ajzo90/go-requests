@@ -42,7 +42,7 @@ func (req *Request) ExecJSON() (*JSONResponse, error) {
 		return nil, err
 	}
 
-	var jsonResp = &JSONResponse{response: response{raw: resp}}
+	jsonResp := &JSONResponse{response: response{raw: resp}}
 
 	jsonResp.v, err = req.respBodyParser.ParseBytes(req.respBodyBuf)
 

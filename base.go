@@ -24,7 +24,7 @@ type Request struct {
 
 // New creates a new *Request
 func New(url interface{}) *Request {
-	var c = &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: http.DefaultClient}
+	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: http.DefaultClient}
 	return c.Url(url)
 }
 

@@ -2,13 +2,14 @@ package requests_test
 
 import (
 	"bytes"
-	"github.com/ajzo90/go-requests"
-	"github.com/matryer/is"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/ajzo90/go-requests"
+	"github.com/matryer/is"
 )
 
 type constStr string
@@ -18,9 +19,8 @@ func (s constStr) String() string {
 }
 
 func TestX(t *testing.T) {
-
-	var token = "secret"
-	var req = requests.NewGet("example.com/test").
+	token := "secret"
+	req := requests.NewGet("example.com/test").
 		BasicAuth("user", "secret").
 		Query("key", constStr("val")).
 		Header("token", &token)
@@ -47,12 +47,11 @@ Token: super-secret
 	is := is.New(t)
 	is.True(err != nil)
 	is.Equal(err.Error(), `raw query and query param not allowed`)
-
 }
 
 func TestIncorrectUsage(t *testing.T) {
 	withTestServer(t, echoHandler, func(t *testing.T, url string) {
-		var tests = []struct {
+		tests := []struct {
 			r   *requests.Request
 			err string
 		}{
@@ -80,16 +79,16 @@ func TestIncorrectUsage(t *testing.T) {
 
 func testReq(t *testing.T, req *requests.Request, expected string) {
 	is := is.New(t)
-	var w = &bytes.Buffer{}
+	w := &bytes.Buffer{}
 	is.NoErr(req.Extended().Write(w))
-	var res = strings.ReplaceAll(w.String(), "\r\n", "\n")
+	res := strings.ReplaceAll(w.String(), "\r\n", "\n")
 	is.Equal(res, expected)
 }
 
 func TestRequest_ExecJSON(t *testing.T) {
 	withTestServer(t, echoHandler, func(t *testing.T, url string) {
 		is := is.New(t)
-		var q = requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar", "baz": 1, "arr": []int{1, 2}})
+		q := requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar", "baz": 1, "arr": []int{1, 2}})
 		for _, q := range []*requests.Request{q, q.Extended().Clone()} {
 			resp, err := q.ExecJSON()
 			is.NoErr(err)
