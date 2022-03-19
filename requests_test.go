@@ -40,23 +40,30 @@ Token: super-secret
 }
 
 func TestIncorrectUsage(t *testing.T) {
-	var tests = []struct {
-		r   *requests.Request
-		err string
-	}{
-		{r: requests.New(123), err: "can not convert 123 to stringer"},
-		{r: requests.New("localhost"), err: `Get "localhost": unsupported protocol scheme ""`},
-		{r: requests.New("https://example.com?test=1").Query("foo", "bar"), err: `raw query and query param not allowed`},
-	}
+	withTestServer(t, echoHandler, func(t *testing.T, url string) {
+		var tests = []struct {
+			r   *requests.Request
+			err string
+		}{
+			{r: requests.New(123), err: "can not convert 123 to stringer"},
+			{r: requests.New("localhost"), err: `Get "localhost": unsupported protocol scheme ""`},
+			{r: requests.New("https://example.com?test=1").Query("foo", "bar"), err: `raw query and query param not allowed`},
+			{r: requests.New("https://example.com").Method("?"), err: `net/http: invalid method "?"`},
+			{r: requests.NewPost(url).JSONBody(strings.Repeat("X", 10000)), err: `full buffer`},
+		}
 
-	for _, test := range tests {
-		t.Run(test.err, func(t *testing.T) {
-			is := is.New(t)
-			_, err := test.r.ExecJSON()
-			is.True(err != nil)
-			is.Equal(err.Error(), test.err)
-		})
-	}
+		for _, test := range tests {
+			t.Run(test.err, func(t *testing.T) {
+				is := is.New(t)
+				_, err := test.r.ExecJSON()
+				is.True(err != nil)
+				is.Equal(err.Error(), test.err)
+			})
+		}
+	})
+}
+
+func TestLargeBody(t *testing.T) {
 
 }
 
@@ -86,5 +93,13 @@ func withTestServer(t *testing.T, handler func(w http.ResponseWriter, r *http.Re
 }
 
 func echoHandler(w http.ResponseWriter, r *http.Request) {
-	io.Copy(w, r.Body)
+	defer r.Body.Close()
+	b, err := io.ReadAll(r.Body)
+
+	// by some reason io.Copy fails at 512 bytes payload
+	if err != nil {
+		panic(err)
+	} else if _, err := w.Write(b); err != nil {
+		panic(err)
+	}
 }

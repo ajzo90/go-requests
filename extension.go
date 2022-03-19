@@ -43,25 +43,23 @@ func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
 		bodyR = bytes.NewBufferString(req.body.String())
 	}
 
-	var request, err = http.NewRequest(
-		req.method.String(),
-		req.url.String(),
-		bodyR)
+	var request, err = http.NewRequest(req.method.String(), req.url.String(), bodyR)
 	if err != nil {
 		return nil, err
 	}
 	for k, v := range req.header {
 		request.Header.Add(k, v.String())
 	}
-	var q = request.URL.Query()
-	for k, v := range req.query {
-		q.Add(k, v.String())
-	}
-	if qv := q.Encode(); qv != "" {
+
+	if len(req.query) > 0 {
 		if request.URL.RawQuery != "" {
 			return nil, fmt.Errorf("raw query and query param not allowed")
 		}
-		request.URL.RawQuery = qv
+		var q = request.URL.Query()
+		for k, v := range req.query {
+			q.Add(k, v.String())
+		}
+		request.URL.RawQuery = q.Encode()
 	}
 
 	return request, err
