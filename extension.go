@@ -20,11 +20,11 @@ func (req *Request) Extended() *ExtendedRequest {
 
 // Write writes the request into w
 func (req *ExtendedRequest) Write(w io.Writer) error {
-	if r, err := req.NewRequest(); err != nil {
+	r, err := req.NewRequest()
+	if err != nil {
 		return err
-	} else {
-		return r.Write(w)
 	}
+	return r.Write(w)
 }
 
 // NewRequest builds a *http.Request
