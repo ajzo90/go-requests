@@ -11,16 +11,6 @@ import (
 	"testing"
 )
 
-func withTestServer(t *testing.T, handler func(w http.ResponseWriter, r *http.Request), fn func(t *testing.T, url string)) {
-	srv := httptest.NewServer(http.HandlerFunc(handler))
-	defer srv.Close()
-	fn(t, srv.URL)
-}
-
-func echoHandler(w http.ResponseWriter, r *http.Request) {
-	io.Copy(w, r.Body)
-}
-
 func TestX(t *testing.T) {
 
 	var token = "secret"
@@ -57,4 +47,23 @@ func testReq(t *testing.T, req *requests.Request, expected string) {
 	is.NoErr(req.Extended().Write(w))
 	var res = strings.ReplaceAll(w.String(), "\r\n", "\n")
 	is.Equal(res, expected)
+}
+
+func TestRequest_ExecJSON(t *testing.T) {
+	withTestServer(t, echoHandler, func(t *testing.T, url string) {
+		is := is.New(t)
+		resp, err := requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar"}).ExecJSON()
+		is.NoErr(err)
+		is.Equal(resp.Get("foo"), "bar")
+	})
+}
+
+func withTestServer(t *testing.T, handler func(w http.ResponseWriter, r *http.Request), fn func(t *testing.T, url string)) {
+	srv := httptest.NewServer(http.HandlerFunc(handler))
+	defer srv.Close()
+	fn(t, srv.URL)
+}
+
+func echoHandler(w http.ResponseWriter, r *http.Request) {
+	io.Copy(w, r.Body)
 }
