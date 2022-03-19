@@ -39,11 +39,25 @@ Token: super-secret
 
 }
 
-func TestNonStringer(t *testing.T) {
-	_, err := requests.New(123).ExecJSON()
-	is := is.New(t)
-	is.True(err != nil)
-	is.Equal(err.Error(), "can not convert 123 to stringer")
+func TestIncorrectUsage(t *testing.T) {
+	var tests = []struct {
+		r   *requests.Request
+		err string
+	}{
+		{r: requests.New(123), err: "can not convert 123 to stringer"},
+		{r: requests.New("localhost"), err: `Get "localhost": unsupported protocol scheme ""`},
+		{r: requests.New("https://example.com?test=1").Query("foo", "bar"), err: `raw query and query param not allowed`},
+	}
+
+	for _, test := range tests {
+		t.Run(test.err, func(t *testing.T) {
+			is := is.New(t)
+			_, err := test.r.ExecJSON()
+			is.True(err != nil)
+			is.Equal(err.Error(), test.err)
+		})
+	}
+
 }
 
 func testReq(t *testing.T, req *requests.Request, expected string) {

@@ -29,6 +29,10 @@ func (req *ExtendedRequest) Write(w io.Writer) error {
 
 // NewRequest builds a *http.Request
 func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
+	if req.method == nil {
+		req.method = toStringer(http.MethodGet)
+	}
+
 	if err := req.err; err != nil {
 		return nil, err
 	}
@@ -39,7 +43,10 @@ func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
 		bodyR = bytes.NewBufferString(req.body.String())
 	}
 
-	var request, err = http.NewRequest(req.method.String(), req.url.String(), bodyR)
+	var request, err = http.NewRequest(
+		req.method.String(),
+		req.url.String(),
+		bodyR)
 	if err != nil {
 		return nil, err
 	}
