@@ -1,7 +1,6 @@
 package requests
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 
@@ -39,7 +38,7 @@ func (req *Request) ExecJSON() (*JSONResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	if req.respBodyBuf, err = readToBuf(make([]byte, 4096), resp.Body); err != nil {
+	if req.respBodyBuf, err = io.ReadAll(resp.Body); err != nil {
 		return nil, err
 	}
 
@@ -52,19 +51,4 @@ func (req *Request) ExecJSON() (*JSONResponse, error) {
 
 type response struct {
 	raw *http.Response
-}
-
-func readToBuf(buf []byte, r io.Reader) ([]byte, error) {
-	buf = buf[:cap(buf)]
-	var n int
-	for n < len(buf) {
-		m, err := r.Read(buf[n:])
-		n += m
-		if err == io.EOF {
-			return buf[:n], nil
-		} else if err != nil {
-			return nil, err
-		}
-	}
-	return nil, fmt.Errorf("full buffer")
 }

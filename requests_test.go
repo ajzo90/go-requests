@@ -11,12 +11,18 @@ import (
 	"testing"
 )
 
+type constStr string
+
+func (s constStr) String() string {
+	return string(s)
+}
+
 func TestX(t *testing.T) {
 
 	var token = "secret"
 	var req = requests.NewGet("example.com/test").
 		BasicAuth("user", "secret").
-		Query("key", "val").
+		Query("key", constStr("val")).
 		Header("token", &token)
 
 	testReq(t, req, `GET example.com/test?key=val HTTP/1.1
