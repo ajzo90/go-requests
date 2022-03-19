@@ -14,15 +14,14 @@ import (
 func TestX(t *testing.T) {
 
 	var token = "secret"
-	var req = requests.NewPost("example.com/test").
+	var req = requests.NewGet("example.com/test").
 		BasicAuth("user", "secret").
 		Query("key", "val").
 		Header("token", &token)
 
-	testReq(t, req, `POST example.com/test?key=val HTTP/1.1
+	testReq(t, req, `GET example.com/test?key=val HTTP/1.1
 Host: 
 User-Agent: Go-http-client/1.1
-Content-Length: 0
 Authorization: Basic dXNlcjpzZWNyZXQ=
 Token: secret
 
@@ -30,10 +29,9 @@ Token: secret
 
 	token = "super-secret"
 
-	testReq(t, req, `POST example.com/test?key=val HTTP/1.1
+	testReq(t, req.Extended().Clone(), `GET example.com/test?key=val HTTP/1.1
 Host: 
 User-Agent: Go-http-client/1.1
-Content-Length: 0
 Authorization: Basic dXNlcjpzZWNyZXQ=
 Token: super-secret
 
@@ -52,9 +50,11 @@ func testReq(t *testing.T, req *requests.Request, expected string) {
 func TestRequest_ExecJSON(t *testing.T) {
 	withTestServer(t, echoHandler, func(t *testing.T, url string) {
 		is := is.New(t)
-		resp, err := requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar"}).ExecJSON()
+		resp, err := requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar", "baz": 1, "arr": []int{1, 2}}).ExecJSON()
 		is.NoErr(err)
 		is.Equal(resp.Get("foo"), "bar")
+		is.Equal(resp.GetInt("baz"), 1)
+		is.Equal(len(resp.GetArray("arr")), 2)
 	})
 }
 
