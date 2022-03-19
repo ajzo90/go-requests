@@ -32,7 +32,6 @@ func (r *JSONResponse) GetArray(keys ...string) []*fastjson.Value {
 // ExecJSON executes the request and return a *JSONResponse
 func (req *Request) ExecJSON() (*JSONResponse, error) {
 	req.Header("accept", applicationJSON)
-	req.respBodyBuf = make([]byte, 1000)
 
 	resp, err := req.Extended().Do()
 	if err != nil {
@@ -40,21 +39,15 @@ func (req *Request) ExecJSON() (*JSONResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	if req.respBodyBuf, err = readToBuf(req.respBodyBuf, resp.Body); err != nil {
-		return nil, err
-	}
-
-	if err := resp.Body.Close(); err != nil {
+	if req.respBodyBuf, err = readToBuf(make([]byte, 4096), resp.Body); err != nil {
 		return nil, err
 	}
 
 	var jsonResp = &JSONResponse{response: response{raw: resp}}
 
-	if jsonResp.v, err = req.respBodyParser.ParseBytes(req.respBodyBuf); err != nil {
-		return nil, err
-	}
+	jsonResp.v, err = req.respBodyParser.ParseBytes(req.respBodyBuf)
 
-	return jsonResp, nil
+	return jsonResp, err
 }
 
 type response struct {
