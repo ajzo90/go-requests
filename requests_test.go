@@ -104,6 +104,17 @@ func withTestServer(t *testing.T, handler func(w http.ResponseWriter, r *http.Re
 	fn(t, srv.URL)
 }
 
+func TestInvalidBody(t *testing.T) {
+	withTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", "1")
+	}, func(t *testing.T, url string) {
+		_, err := requests.NewGet(url).ExecJSON()
+		is := is.New(t)
+		is.True(err != nil)
+		is.Equal(err.Error(), `unexpected EOF`)
+	})
+}
+
 func echoHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
