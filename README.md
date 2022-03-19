@@ -25,3 +25,9 @@ token = "super-secret"// update token
 jsonResp, err := builder.ExecJSON()
 
 ```
+
+## Todo
+- [ ] Context
+- [ ] Error validation. 200, 2xx, customer, other?
+- [ ] Retry  
+- [ ] Throttling
