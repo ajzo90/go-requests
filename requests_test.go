@@ -22,22 +22,39 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestX(t *testing.T) {
-	is := is.New(t)
-	var w = &bytes.Buffer{}
+
+	var token = "secret"
 	var req = requests.NewPost("example.com/test").
+		BasicAuth("user", "secret").
 		Query("key", "val").
-		Header("token", "secret")
+		Header("token", &token)
 
-	is.NoErr(req.Extended().Write(w))
-
-	const expected = `POST example.com/test?key=val HTTP/1.1
+	testReq(t, req, `POST example.com/test?key=val HTTP/1.1
 Host: 
 User-Agent: Go-http-client/1.1
 Content-Length: 0
+Authorization: Basic dXNlcjpzZWNyZXQ=
 Token: secret
 
-`
+`)
+
+	token = "super-secret"
+
+	testReq(t, req, `POST example.com/test?key=val HTTP/1.1
+Host: 
+User-Agent: Go-http-client/1.1
+Content-Length: 0
+Authorization: Basic dXNlcjpzZWNyZXQ=
+Token: super-secret
+
+`)
+
+}
+
+func testReq(t *testing.T, req *requests.Request, expected string) {
+	is := is.New(t)
+	var w = &bytes.Buffer{}
+	is.NoErr(req.Extended().Write(w))
 	var res = strings.ReplaceAll(w.String(), "\r\n", "\n")
 	is.Equal(res, expected)
-
 }
