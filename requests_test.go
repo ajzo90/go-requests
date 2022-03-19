@@ -59,7 +59,6 @@ func TestIncorrectUsage(t *testing.T) {
 			{r: requests.New("localhost"), err: `Get "localhost": unsupported protocol scheme ""`},
 			{r: requests.New("https://example.com?test=1").Query("foo", "bar"), err: `raw query and query param not allowed`},
 			{r: requests.New("https://example.com").Method("?"), err: `net/http: invalid method "?"`},
-			{r: requests.NewPost(url).JSONBody(strings.Repeat("X", 10000)), err: `full buffer`},
 		}
 
 		for _, test := range tests {
