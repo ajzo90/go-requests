@@ -37,6 +37,11 @@ Token: super-secret
 
 `)
 
+	err := requests.NewGet("example.com?a=1").Query("b", "2").Extended().Write(nil)
+	is := is.New(t)
+	is.True(err != nil)
+	is.Equal(err.Error(), `raw query and query param not allowed`)
+
 }
 
 func TestIncorrectUsage(t *testing.T) {
@@ -55,16 +60,16 @@ func TestIncorrectUsage(t *testing.T) {
 		for _, test := range tests {
 			t.Run(test.err, func(t *testing.T) {
 				is := is.New(t)
-				_, err := test.r.ExecJSON()
+				_, err := test.r.Extended().Clone().ExecJSON()
+				is.True(err != nil)
+				is.Equal(err.Error(), test.err)
+
+				_, err = test.r.ExecJSON()
 				is.True(err != nil)
 				is.Equal(err.Error(), test.err)
 			})
 		}
 	})
-}
-
-func TestLargeBody(t *testing.T) {
-
 }
 
 func testReq(t *testing.T, req *requests.Request, expected string) {
@@ -78,11 +83,14 @@ func testReq(t *testing.T, req *requests.Request, expected string) {
 func TestRequest_ExecJSON(t *testing.T) {
 	withTestServer(t, echoHandler, func(t *testing.T, url string) {
 		is := is.New(t)
-		resp, err := requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar", "baz": 1, "arr": []int{1, 2}}).ExecJSON()
-		is.NoErr(err)
-		is.Equal(resp.Get("foo"), "bar")
-		is.Equal(resp.GetInt("baz"), 1)
-		is.Equal(len(resp.GetArray("arr")), 2)
+		var q = requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar", "baz": 1, "arr": []int{1, 2}})
+		for _, q := range []*requests.Request{q, q.Extended().Clone()} {
+			resp, err := q.ExecJSON()
+			is.NoErr(err)
+			is.Equal(resp.Get("foo"), "bar")
+			is.Equal(resp.GetInt("baz"), 1)
+			is.Equal(len(resp.GetArray("arr")), 2)
+		}
 	})
 }
 

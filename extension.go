@@ -76,8 +76,11 @@ func (req *ExtendedRequest) Do() (*http.Response, error) {
 
 // Clone clones the *Request to allow concurrent usage of the same base configuration
 func (req *ExtendedRequest) Clone() *Request {
-	var newClient = New(req.url).Method(req.method)
+	var newClient = New("")
 	newClient.body = req.body
+	newClient.url = req.url
+	newClient.method = req.method
+	newClient.err = req.err
 	for k, v := range req.header {
 		newClient.header[k] = v
 	}
