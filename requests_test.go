@@ -40,7 +40,7 @@ Token: super-secret
 }
 
 func TestNonStringer(t *testing.T) {
-	err := requests.New(123).Extended().Write(nil)
+	_, err := requests.New(123).ExecJSON()
 	is := is.New(t)
 	is.True(err != nil)
 	is.Equal(err.Error(), "can not convert 123 to stringer")
