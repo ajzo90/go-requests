@@ -41,8 +41,8 @@ jobs:
           go-version: '1.18' # The Go version to download (if necessary) and use.
 
       - name: gofmt
-        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then gofmt -s -l . ; exit 1; fi
-        # fix with: gofmt -s -w ./
+        run: if [ "$(go run mvdan.cc/gofumpt@latest -l . | wc -l)" -gt 0 ]; then go run mvdan.cc/gofumpt@latest -l . ; exit 1; fi
+        # fix with: go run mvdan.cc/gofumpt@latest -s -w ./
 
       # Install all the dependencies
       - name: Install dependencies
