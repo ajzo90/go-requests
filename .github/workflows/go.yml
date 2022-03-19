@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: |
           go get -u golang.org/x/lint/golint
-
-      # Run testing on the code
-      - name: Run testing
-        run: go test ./...
+      - name: Run coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
