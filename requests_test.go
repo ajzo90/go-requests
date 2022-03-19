@@ -39,6 +39,13 @@ Token: super-secret
 
 }
 
+func TestNonStringer(t *testing.T) {
+	err := requests.New(123).Extended().Write(nil)
+	is := is.New(t)
+	is.True(err != nil)
+	is.Equal(err.Error(), "can not convert 123 to stringer")
+}
+
 func testReq(t *testing.T, req *requests.Request, expected string) {
 	is := is.New(t)
 	var w = &bytes.Buffer{}

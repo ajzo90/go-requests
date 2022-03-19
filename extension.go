@@ -29,6 +29,10 @@ func (req *ExtendedRequest) Write(w io.Writer) error {
 
 // NewRequest builds a *http.Request
 func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
+	if err := req.err; err != nil {
+		return nil, err
+	}
+
 	var bodyR io.Reader
 
 	if req.body != nil {
@@ -53,9 +57,6 @@ func (req *ExtendedRequest) NewRequest() (*http.Request, error) {
 		request.URL.RawQuery = qv
 	}
 
-	if err := req.err; err != nil {
-		return nil, err
-	}
 	return request, err
 }
 
