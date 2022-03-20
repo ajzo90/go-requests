@@ -13,19 +13,24 @@ type JSONResponse struct {
 	v *fastjson.Value
 }
 
-// Get string from JSON body
-func (r *JSONResponse) Get(keys ...string) string {
+// String get string from JSON body
+func (r *JSONResponse) String(keys ...string) string {
 	return string(r.v.GetStringBytes(keys...))
 }
 
-// GetInt gets int from JSON body
-func (r *JSONResponse) GetInt(keys ...string) int {
+// Int gets int from JSON body
+func (r *JSONResponse) Int(keys ...string) int {
 	return r.v.GetInt(keys...)
 }
 
 // GetArray gets array from JSON body
 func (r *JSONResponse) GetArray(keys ...string) []*fastjson.Value {
 	return r.v.GetArray(keys...)
+}
+
+// Body gets the JSON body
+func (r *JSONResponse) Body() *fastjson.Value {
+	return r.v
 }
 
 // ExecJSON executes the request and return a *JSONResponse
