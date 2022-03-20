@@ -30,4 +30,4 @@ jsonResp, err := builder.ExecJSON()
 - [ ] Context
 - [ ] Error validation. 200, 2xx, customer, other?
 - [ ] Retry  
-- [ ] Throttling
+- [ ] Throttle
