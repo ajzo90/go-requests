@@ -91,8 +91,9 @@ func TestRequest_ExecJSON(t *testing.T) {
 		for _, q := range []*requests.Request{q, q.Extended().Clone()} {
 			resp, err := q.ExecJSON()
 			is.NoErr(err)
-			is.Equal(resp.Get("foo"), "bar")
-			is.Equal(resp.GetInt("baz"), 1)
+			is.Equal(resp.String("foo"), "bar")
+			is.Equal(resp.Int("baz"), 1)
+			is.Equal(resp.Body().GetInt("baz"), 1)
 			is.Equal(len(resp.GetArray("arr")), 2)
 		}
 	})
