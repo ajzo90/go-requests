@@ -17,14 +17,22 @@ type Request struct {
 
 	respBodyBuf    []byte
 	respBodyParser fastjson.Parser
+	respHandler    func(resp *http.Response) error
 
 	err  error
 	doer Doer
 }
 
+func defaultRespHandler(resp *http.Response) error {
+	if resp.StatusCode == 200 {
+		return nil
+	}
+	return fmt.Errorf("invalid status %s", resp.Status)
+}
+
 // New creates a new *Request
 func New(url interface{}) *Request {
-	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: http.DefaultClient}
+	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: http.DefaultClient, respHandler: defaultRespHandler}
 	return c.Url(url)
 }
 
