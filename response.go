@@ -43,6 +43,10 @@ func (req *Request) ExecJSON() (*JSONResponse, error) {
 	}
 	defer resp.Body.Close()
 
+	if err := req.respHandler(resp); err != nil {
+		return nil, err
+	}
+
 	if req.respBodyBuf, err = io.ReadAll(resp.Body); err != nil {
 		return nil, err
 	}

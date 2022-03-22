@@ -127,3 +127,16 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 }
+
+func Test404Req(t *testing.T) {
+	withTestServer(t, errHandler, func(t *testing.T, url string) {
+		_, err := requests.New(url).ExecJSON()
+		is := is.New(t)
+		is.True(err != nil)
+		is.Equal(err.Error(), "invalid status 404 Not Found")
+	})
+}
+
+func errHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+}
