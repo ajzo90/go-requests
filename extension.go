@@ -47,7 +47,7 @@ func (req *ExtendedRequest) renderFn(masked bool) func(st stringer) string {
 	return func(st stringer) string {
 		s := st.String()
 		for k, v := range req.secrets {
-			var str = v.String()
+			str := v.String()
 			if masked {
 				s = strings.ReplaceAll(s, k, strings.Repeat("*", len(str)))
 			} else {
@@ -66,7 +66,7 @@ func (req *ExtendedRequest) NewRequestContext(ctx context.Context, masked bool) 
 	if err := req.err; err != nil {
 		return nil, err
 	}
-	var renderer = req.renderFn(masked)
+	renderer := req.renderFn(masked)
 
 	var body io.Reader
 	if req.body != nil {

@@ -26,7 +26,7 @@ func TestRetryer_Do(t *testing.T) {
 		w.Header().Add("foo", "bar")
 		io.Copy(w, r.Body)
 	}, func(t *testing.T, url string) {
-		var builder = requests.New(url).
+		builder := requests.New(url).
 			Method(http.MethodGet).
 			Path("xx").
 			JSONBody("hello").

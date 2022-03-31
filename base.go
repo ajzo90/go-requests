@@ -89,7 +89,7 @@ func (req *Request) _toStringer(v interface{}, secret bool) stringer {
 	}
 
 	if secret {
-		var key = fmt.Sprintf("MASKED_%d", len(req.secrets)+1)
+		key := fmt.Sprintf("MASKED_%d", len(req.secrets)+1)
 		req.Secret(key, s)
 		return toStringer(SecretKey(key))
 	} else {
