@@ -28,7 +28,7 @@ type Retryer struct {
 }
 
 var backoff = func() Backoffer {
-	var min = time.Second / 10
+	min := time.Second / 10
 	var attempts int
 	return Backoff(func(resp *http.Response) time.Duration {
 		attempts++
@@ -102,18 +102,18 @@ func (d *defaultLogger) Log(id int, err error, msg string) {
 func (r *Retryer) Do(request *http.Request) (_ *http.Response, err error) {
 	var nextTry time.Time
 
-	var id = r.logger.NextID()
+	id := r.logger.NextID()
 	defer func() {
 		r.logger.Log(id, err, "done")
 	}()
 
-	var w = bytes.NewBuffer(nil)
+	w := bytes.NewBuffer(nil)
 	if err := request.Write(w); err != nil {
 		return nil, err
 	}
 	r.logger.Log(id, nil, w.String())
 
-	var backoff = r.backoff()
+	backoff := r.backoff()
 	for attempts := 0; ; attempts++ {
 		if retryAfter := r.retryAfter(); retryAfter.After(nextTry) {
 			nextTry = retryAfter

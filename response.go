@@ -34,6 +34,7 @@ func (r *JSONResponse) GetArray(keys ...string) []*fastjson.Value {
 func (r *JSONResponse) Body() *fastjson.Value {
 	return r.v
 }
+
 func (req *Request) ScanJSON(ctx context.Context, v interface{}) error {
 	resp, err := req.doJSON(ctx)
 	if err != nil {

@@ -32,7 +32,7 @@ type Doer interface {
 }
 
 func sleepUntil(ctx context.Context, until time.Time) error {
-	var d = -time.Since(until)
+	d := -time.Since(until)
 	if d < 0 {
 		return nil
 	}

@@ -36,7 +36,7 @@ func (req *ExtendedRequest) Write(w io.Writer) error {
 }
 
 func (req *ExtendedRequest) fullUrl() string {
-	var base = req.baseUrl.String()
+	base := req.baseUrl.String()
 	if p := req.path.String(); p != "" {
 		return strings.ReplaceAll(base+"/"+p, "//", "/")
 	}
@@ -90,7 +90,7 @@ func (req *ExtendedRequest) Do(ctxs ...context.Context) (*http.Response, error) 
 	}
 
 	if req.timeout != 0 {
-		var cancel = func() {}
+		cancel := func() {}
 		ctx, cancel = context.WithTimeout(ctx, req.timeout)
 		defer cancel()
 	}

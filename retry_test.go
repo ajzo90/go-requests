@@ -1,13 +1,14 @@
 package requests_test
 
 import (
-	"github.com/ajzo90/go-requests"
-	"github.com/matryer/is"
 	"io"
 	"log"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/ajzo90/go-requests"
+	"github.com/matryer/is"
 )
 
 var doer = requests.NewRetryer(http.DefaultClient, requests.Logger(func(id int, err error, msg string) {
@@ -24,7 +25,7 @@ func TestRetryer_Do(t *testing.T) {
 		}
 		io.Copy(w, r.Body)
 	}, func(t *testing.T, url string) {
-		var resp, err = requests.New(url).
+		resp, err := requests.New(url).
 			Method(http.MethodGet).
 			JSONBody("hello").
 			Timeout(time.Second * 5).
@@ -36,5 +37,4 @@ func TestRetryer_Do(t *testing.T) {
 		is.NoErr(err)
 		is.Equal(resp.String(), "hello")
 	})
-
 }
