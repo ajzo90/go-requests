@@ -1,44 +1,82 @@
 package requests
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/valyala/fastjson"
 )
 
 // Request hold the request builder data
 type Request struct {
-	method stringer
-	url    stringer
-	header map[string]stringer
-	query  map[string]stringer
-	body   stringer
+	method  stringer
+	baseUrl stringer
+	path    stringer
+	body    stringer
+	header  stringerMap
+	query   stringerMap
 
 	respBodyBuf    []byte
 	respBodyParser fastjson.Parser
-	respHandler    func(resp *http.Response) error
+	timeout        time.Duration
 
 	err  error
+	doer Doer // this doer should do all error handling, if it returns err=nil we are ready to use the payload
+}
+
+type Doer interface {
+	// Do attempt to do one http request (and retries/redirects)
+	Do(r *http.Request) (*http.Response, error)
+}
+
+func sleepUntil(ctx context.Context, until time.Time) error {
+	var d = -time.Since(until)
+	if d < 0 {
+		return nil
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(d):
+		return nil
+	}
+}
+
+type stringerMap map[string]stringer
+
+func (m stringerMap) Reset() {
+	for k := range m {
+		delete(m, k)
+	}
+}
+
+func (m stringerMap) CopyTo(newMap stringerMap) {
+	for k, v := range m {
+		newMap[k] = v
+	}
+}
+
+type defaultDoer struct {
 	doer Doer
 }
 
-func defaultRespHandler(resp *http.Response) error {
-	if resp.StatusCode == 200 {
-		return nil
+func (d defaultDoer) Do(r *http.Request) (*http.Response, error) {
+	resp, err := d.doer.Do(r)
+	if err != nil {
+		return nil, err
+	} else if resp.StatusCode != 200 {
+		_ = drain(resp.Body)
+		return nil, fmt.Errorf("invalid status %s", resp.Status)
 	}
-	return fmt.Errorf("invalid status %s", resp.Status)
+	return resp, nil
 }
 
 // New creates a new *Request
 func New(url interface{}) *Request {
-	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: http.DefaultClient, respHandler: defaultRespHandler}
-	return c.Url(url)
-}
-
-// Doer is the type that send the request, defaults to a http.DefaultClient
-type Doer interface {
-	Do(req *http.Request) (*http.Response, error)
+	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: &defaultDoer{doer: http.DefaultClient}}
+	return c.Url(url).Path("")
 }
 
 const (
@@ -65,6 +103,18 @@ func (req *Request) Header(key string, value interface{}) *Request {
 	return req
 }
 
+// Path sets a path
+func (req *Request) Path(value interface{}) *Request {
+	req.path = req.toStringer(value)
+	return req
+}
+
+// Timeout sets the timeout
+func (req *Request) Timeout(d time.Duration) *Request {
+	req.timeout = d
+	return req
+}
+
 // Body set the http body
 func (req *Request) Body(contentType string, value interface{}) *Request {
 	req.body = req.toStringer(value)
@@ -85,6 +135,6 @@ func (req *Request) Method(method interface{}) *Request {
 
 // Url sets the http url
 func (req *Request) Url(url interface{}) *Request {
-	req.url = req.toStringer(url)
+	req.baseUrl = req.toStringer(url)
 	return req
 }

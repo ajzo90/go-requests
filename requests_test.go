@@ -2,6 +2,7 @@ package requests_test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -64,11 +65,11 @@ func TestIncorrectUsage(t *testing.T) {
 		for _, test := range tests {
 			t.Run(test.err, func(t *testing.T) {
 				is := is.New(t)
-				_, err := test.r.Extended().Clone().ExecJSON()
+				_, err := test.r.Extended().Clone().ExecJSON(context.Background())
 				is.True(err != nil)
 				is.Equal(err.Error(), test.err)
 
-				_, err = test.r.ExecJSON()
+				_, err = test.r.ExecJSON(context.Background())
 				is.True(err != nil)
 				is.Equal(err.Error(), test.err)
 			})
@@ -89,7 +90,7 @@ func TestRequest_ExecJSON(t *testing.T) {
 		is := is.New(t)
 		q := requests.NewPost(url).JSONBody(map[string]interface{}{"foo": "bar", "baz": 1, "arr": []int{1, 2}})
 		for _, q := range []*requests.Request{q, q.Extended().Clone()} {
-			resp, err := q.ExecJSON()
+			resp, err := q.ExecJSON(context.Background())
 			is.NoErr(err)
 			is.Equal(resp.String("foo"), "bar")
 			is.Equal(resp.Int("baz"), 1)
@@ -109,7 +110,7 @@ func TestInvalidBody(t *testing.T) {
 	withTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Length", "1")
 	}, func(t *testing.T, url string) {
-		_, err := requests.NewGet(url).ExecJSON()
+		_, err := requests.NewGet(url).ExecJSON(context.Background())
 		is := is.New(t)
 		is.True(err != nil)
 		is.Equal(err.Error(), `unexpected EOF`)
@@ -130,7 +131,7 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 
 func Test404Req(t *testing.T) {
 	withTestServer(t, errHandler, func(t *testing.T, url string) {
-		_, err := requests.New(url).ExecJSON()
+		_, err := requests.New(url).ExecJSON(context.Background())
 		is := is.New(t)
 		is.True(err != nil)
 		is.Equal(err.Error(), "invalid status 404 Not Found")
