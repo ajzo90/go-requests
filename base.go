@@ -1,7 +1,6 @@
 package requests
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -30,19 +29,6 @@ type Request struct {
 type Doer interface {
 	// Do attempt to do one http request (and retries/redirects)
 	Do(r *http.Request) (*http.Response, error)
-}
-
-func sleepUntil(ctx context.Context, until time.Time) error {
-	d := -time.Since(until)
-	if d < 0 {
-		return nil
-	}
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-time.After(d):
-		return nil
-	}
 }
 
 type stringerMap map[string]stringer

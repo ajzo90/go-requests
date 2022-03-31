@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"context"
 	"crypto/x509"
 	"fmt"
 	"io"
@@ -246,4 +247,17 @@ func retryErr(resp *http.Response, err error) (bool, error) {
 
 	// The error is likely recoverable so retry.
 	return true, err
+}
+
+func sleepUntil(ctx context.Context, until time.Time) error {
+	d := -time.Since(until)
+	if d < 0 {
+		return nil
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(d):
+		return nil
+	}
 }
