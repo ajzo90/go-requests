@@ -49,7 +49,7 @@ func (req *ExtendedRequest) renderFn(masked bool) func(st stringer) string {
 	}
 	if masked {
 		mapper = func(s string) string {
-			return strings.Repeat("*", len(s))
+			return strings.Repeat("x", len(s))
 		}
 	}
 

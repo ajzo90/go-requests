@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -26,19 +27,24 @@ func TestRetryer_Do(t *testing.T) {
 		w.Header().Add("foo", "bar")
 		io.Copy(w, r.Body)
 	}, func(t *testing.T, url string) {
-		builder := requests.New(url).
+		req := requests.New(url).
 			Method(http.MethodGet).
-			Path("xx").
-			JSONBody("hello").
-			Timeout(time.Second*6).
+			Path("/foo/bar").
+			Query("k", "${key}").
+			Header("user-agent", "x").
 			Header("Auth", "${key}").
 			Header("Miss", "${miss}").
 			SecretHeader("my-header", "secret2").
 			BasicAuth("christian", "secret3").
-			Secret("key", "secret")
+			JSONBody("hello").
+			WithExtended(func(req *requests.ExtendedRequest) {
+				req.Doer(doer)
+				req.Secret("key", "secret")
+				req.Timeout(time.Second * 6)
+				_ = req.Write(os.Stdout)
+			})
 
-		resp, err := builder.Extended().Doer(doer).ExecJSON()
-
+		resp, err := req.ExecJSON()
 		is := is.New(t)
 		is.NoErr(err)
 		is.Equal(resp.String(), "hello")
