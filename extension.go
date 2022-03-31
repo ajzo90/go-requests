@@ -44,7 +44,7 @@ func (req *ExtendedRequest) fullUrl(render func(stringer) string) string {
 }
 
 func (req *ExtendedRequest) renderFn(masked bool) func(st stringer) string {
-	var mapper = func(s string) string {
+	mapper := func(s string) string {
 		return s
 	}
 	if masked {
