@@ -1,7 +1,6 @@
 package requests
 
 import (
-	"bytes"
 	"crypto/x509"
 	"fmt"
 	"io"
@@ -99,13 +98,7 @@ func (r *Retryer) Do(request *http.Request) (_ *http.Response, err error) {
 	id := r.logger.NextID()
 	defer func() {
 		r.logger.Log(id, err, "done")
-	}() //${SECRET}
-
-	w := bytes.NewBuffer(nil)
-	if err := request.Write(w); err != nil {
-		return nil, err
-	}
-	r.logger.Log(id, nil, w.String())
+	}()
 
 	backoff := r.backoff()
 	for attempts := 0; ; attempts++ {

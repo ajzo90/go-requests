@@ -44,15 +44,19 @@ func (req *ExtendedRequest) fullUrl(render func(stringer) string) string {
 }
 
 func (req *ExtendedRequest) renderFn(masked bool) func(st stringer) string {
+	var mapper = func(s string) string {
+		return s
+	}
+	if masked {
+		mapper = func(s string) string {
+			return strings.Repeat("*", len(s))
+		}
+	}
+
 	return func(st stringer) string {
 		s := st.String()
 		for k, v := range req.secrets {
-			str := v.String()
-			if masked {
-				s = strings.ReplaceAll(s, k, strings.Repeat("*", len(str)))
-			} else {
-				s = strings.ReplaceAll(s, k, str)
-			}
+			s = strings.ReplaceAll(s, k, mapper(v.String()))
 		}
 		return s
 	}
