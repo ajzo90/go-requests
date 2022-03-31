@@ -24,7 +24,6 @@ type Retryer struct {
 	retryPolicy   func(*http.Response, error) (bool, error)
 	drainer       func(io.ReadCloser) error
 	logger        RequestLogger
-	count         int
 }
 
 var backoff = func() Backoffer {
@@ -53,13 +52,6 @@ func (r *Retryer) retryAfter() time.Time {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.nextTry
-}
-
-func (r *Retryer) id() int {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	r.count++
-	return r.count
 }
 
 func (r *Retryer) updateRetryAfter(retryAfter time.Duration) {
@@ -199,7 +191,7 @@ var DefaultSharedBackoff = Backoff(func(resp *http.Response) time.Duration {
 			if sleep, err := strconv.ParseInt(s, 10, 64); err == nil {
 				return time.Second * time.Duration(sleep)
 			} else if after, err := time.Parse(time.RFC1123, s); err == nil {
-				return after.Sub(time.Now())
+				return time.Until(after)
 			}
 		}
 	}

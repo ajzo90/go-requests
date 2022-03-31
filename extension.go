@@ -90,7 +90,7 @@ func (req *ExtendedRequest) Do(ctxs ...context.Context) (*http.Response, error) 
 	}
 
 	if req.timeout != 0 {
-		cancel := func() {}
+		var cancel func()
 		ctx, cancel = context.WithTimeout(ctx, req.timeout)
 		defer cancel()
 	}
