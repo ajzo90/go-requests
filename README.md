@@ -1,6 +1,6 @@
 # go-requests
-Request builder for flexible and composable requests.
 
+Request builder for flexible and composable requests.
 
 [![CICD](https://github.com/ajzo90/go-requests/actions/workflows/ci.yml/badge.svg)](https://github.com/ajzo90/go-requests/actions/workflows/ci.yml)
 [![CICD](https://github.com/ajzo90/go-requests/actions/workflows/go.yml/badge.svg)](https://github.com/ajzo90/go-requests/actions/workflows/go.yml)
@@ -11,6 +11,8 @@ Request builder for flexible and composable requests.
 [![codecov](https://codecov.io/gh/ajzo90/go-requests/branch/main/graph/badge.svg?token=BDKHJVZCUY)](https://codecov.io/gh/ajzo90/go-requests)
 
 ## Usage
+
+### Late/lazy materialisation, values can be pointers to string
 ```go
 var token = "secret"
 
@@ -18,16 +20,51 @@ var builder = requests.NewPost("example.com/test").
     Query("key", "val").
     Header("token", &token)
 
-jsonResp, err := builder.ExecJSON()	
+jsonResp, err := builder.ExecJSON()
 
-token = "super-secret"// update token		
+token = "super-secret" // update token		
 
 jsonResp, err := builder.ExecJSON()
 
 ```
 
+### Secret masking
+```go
+
+requests.New(url).
+    Method(http.MethodGet).
+    Path("/foo/bar").
+    Query("k", "${key}").
+    Header("user-agent", "x").
+    Header("Auth", "${key}").
+    Header("Miss", "${miss}").
+    SecretHeader("my-header", "secret2").
+    BasicAuth("christian", "secret3").
+    JSONBody("hello").
+    WithExtended(func(req *requests.ExtendedRequest) {
+        req.Doer(doer)
+        req.Secret("key", "secret")
+        req.Timeout(time.Second * 6)
+        _ = req.Write(os.Stdout)
+    })
+```
+```shell
+GET /foo/bar?k=xxxxxx HTTP/1.1
+Host: 127.0.0.1:63181
+User-Agent: x
+Content-Length: 7
+Auth: xxxxxx
+Authorization: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Content-Type: application/json
+Miss: ${miss}
+My-Header: xxxxxxx
+
+"hello"
+```
+
 ## Todo
+
 - [ ] Context
 - [ ] Error validation. 200, 2xx, customer, other?
-- [ ] Retry  
+- [ ] Retry
 - [ ] Throttle

@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"context"
 	"io"
 	"net/http"
 
@@ -33,21 +34,20 @@ func (r *JSONResponse) Body() *fastjson.Value {
 	return r.v
 }
 
-// ExecJSON executes the request and return a *JSONResponse
-func (req *Request) ExecJSON() (*JSONResponse, error) {
-	req.Header("accept", applicationJSON)
+func (req *Request) doJSON(ctxs ...context.Context) (*http.Response, error) {
+	return req.Header("accept", applicationJSON).Extended().Do(ctxs...)
+}
 
-	resp, err := req.Extended().Do()
+// ExecJSON executes the request and return a *JSONResponse
+func (req *Request) ExecJSON(ctxs ...context.Context) (*JSONResponse, error) {
+	resp, err := req.doJSON(ctxs...)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if err := req.respHandler(resp); err != nil {
-		return nil, err
-	}
-
-	if req.respBodyBuf, err = io.ReadAll(resp.Body); err != nil {
+	req.respBodyBuf, err = io.ReadAll(resp.Body)
+	if err != nil {
 		return nil, err
 	}
 
@@ -56,6 +56,10 @@ func (req *Request) ExecJSON() (*JSONResponse, error) {
 	jsonResp.v, err = req.respBodyParser.ParseBytes(req.respBodyBuf)
 
 	return jsonResp, err
+}
+
+func (r *response) Header(key string) string {
+	return r.raw.Header.Get(key)
 }
 
 type response struct {

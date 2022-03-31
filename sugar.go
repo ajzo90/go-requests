@@ -21,7 +21,7 @@ func basicAuth(username, password string) string {
 
 // BasicAuth add basic authorization
 func (req *Request) BasicAuth(user, password string) *Request {
-	return req.Header("Authorization", "Basic "+basicAuth(user, password))
+	return req.SecretHeader("Authorization", "Basic "+basicAuth(user, password))
 }
 
 // ContentType is a helper to set content type
