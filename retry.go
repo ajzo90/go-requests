@@ -141,8 +141,8 @@ func (r *Retryer) Do(request *http.Request) (_ *http.Response, err error) {
 			resp.Body = &logReaderCloser{rc: resp.Body, logger: func(n int) {
 				r.logger.Log(id, nil, fmt.Sprintf("close %d", n))
 			}}
+			r.updateRetryAfter(r.sharedBackoff.Next(resp))
 		}
-		r.updateRetryAfter(r.sharedBackoff.Next(resp))
 		retry, retryErr := r.retryPolicy(resp, err)
 		if !retry {
 			if err == nil && retryErr != nil {
@@ -150,8 +150,11 @@ func (r *Retryer) Do(request *http.Request) (_ *http.Response, err error) {
 			}
 			return resp, retryErr
 		}
-		r.logger.Log(id, retryErr, fmt.Sprintf("retry: %s", resp.Status))
-		_ = r.drainer(resp.Body)
+		if resp != nil {
+			r.logger.Log(id, retryErr, fmt.Sprintf("retry: %s", resp.Status))
+			_ = r.drainer(resp.Body)
+		}
+
 		nextTry = time.Now().Add(backoff.Next(resp))
 	}
 }
@@ -220,6 +223,7 @@ func retryStatus(resp *http.Response) (bool, error) {
 var (
 	redirectsErrorRe = regexp.MustCompile(`stopped after \d+ redirects\z`)
 	schemeErrorRe    = regexp.MustCompile(`unsupported protocol scheme`)
+	noHostInURLRe    = regexp.MustCompile(`no Host in request URL`)
 )
 
 func retryErr(resp *http.Response, err error) (bool, error) {
@@ -234,10 +238,15 @@ func retryErr(resp *http.Response, err error) (bool, error) {
 			return false, v
 		}
 
+		if noHostInURLRe.MatchString(v.Error()) {
+			return false, v
+		}
+
 		// Don't retry if the error was due to TLS cert verification failure.
 		if _, ok := v.Err.(x509.UnknownAuthorityError); ok {
 			return false, v
 		}
+
 	}
 
 	// The error is likely recoverable so retry.

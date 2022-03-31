@@ -2,7 +2,6 @@ package requests
 
 import (
 	"context"
-	"encoding/json"
 	"io"
 	"net/http"
 
@@ -33,15 +32,6 @@ func (r *JSONResponse) GetArray(keys ...string) []*fastjson.Value {
 // Body gets the JSON body
 func (r *JSONResponse) Body() *fastjson.Value {
 	return r.v
-}
-
-func (req *Request) ScanJSON(ctx context.Context, v interface{}) error {
-	resp, err := req.doJSON(ctx)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return json.NewDecoder(resp.Body).Decode(v)
 }
 
 func (req *Request) doJSON(ctxs ...context.Context) (*http.Response, error) {

@@ -46,12 +46,6 @@ func sleepUntil(ctx context.Context, until time.Time) error {
 
 type stringerMap map[string]stringer
 
-func (m stringerMap) Reset() {
-	for k := range m {
-		delete(m, k)
-	}
-}
-
 func (m stringerMap) CopyTo(newMap stringerMap) {
 	for k, v := range m {
 		newMap[k] = v

@@ -23,18 +23,22 @@ func TestRetryer_Do(t *testing.T) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		w.Header().Add("foo", "bar")
 		io.Copy(w, r.Body)
 	}, func(t *testing.T, url string) {
 		resp, err := requests.New(url).
 			Method(http.MethodGet).
 			JSONBody("hello").
+			Path("xx").
 			Timeout(time.Second * 5).
-			Extended().
-			Doer(doer).
+			WithExtended(func(request *requests.ExtendedRequest) {
+				request.Doer(doer)
+			}).
 			ExecJSON()
 
 		is := is.New(t)
 		is.NoErr(err)
 		is.Equal(resp.String(), "hello")
+		is.Equal(resp.Header("foo"), "bar")
 	})
 }

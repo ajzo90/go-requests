@@ -38,7 +38,7 @@ func (req *ExtendedRequest) Write(w io.Writer) error {
 func (req *ExtendedRequest) fullUrl() string {
 	base := req.baseUrl.String()
 	if p := req.path.String(); p != "" {
-		return strings.ReplaceAll(base+"/"+p, "//", "/")
+		return strings.TrimRight(base, "/") + "/" + strings.TrimLeft(p, "/")
 	}
 	return base
 }
@@ -107,16 +107,16 @@ func (req *ExtendedRequest) Doer(client Doer) *ExtendedRequest {
 	return req
 }
 
-// Reset the request
-func (req *ExtendedRequest) Reset() {
-	req.method = nil
-	req.baseUrl = nil
-	req.path = nil
-	req.body = nil
-	req.err = nil
-	req.header.Reset()
-	req.query.Reset()
-}
+//// Reset the request
+//func (req *ExtendedRequest) Reset() {
+//	req.method = nil
+//	req.baseUrl = nil
+//	req.path = nil
+//	req.body = nil
+//	req.err = nil
+//	req.header.Reset()
+//	req.query.Reset()
+//}
 
 // Clone clones the *Request to allow concurrent usage of the same base configuration
 func (req *ExtendedRequest) Clone() *Request {
