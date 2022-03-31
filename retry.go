@@ -16,14 +16,16 @@ import (
 )
 
 type Retryer struct {
-	doer          Doer
-	nextTry       time.Time
-	mtx           sync.RWMutex
+	doer    Doer
+	nextTry time.Time
+	mtx     sync.RWMutex
+
 	backoff       func() Backoffer
 	sharedBackoff Backoffer
 	retryPolicy   func(*http.Response, error) (bool, error)
-	drainer       func(io.ReadCloser) error
-	logger        RequestLogger
+
+	drainer func(io.ReadCloser) error
+	logger  RequestLogger
 }
 
 var backoff = func() Backoffer {
@@ -97,7 +99,7 @@ func (r *Retryer) Do(request *http.Request) (_ *http.Response, err error) {
 	id := r.logger.NextID()
 	defer func() {
 		r.logger.Log(id, err, "done")
-	}()
+	}() //${SECRET}
 
 	w := bytes.NewBuffer(nil)
 	if err := request.Write(w); err != nil {

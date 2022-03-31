@@ -17,6 +17,7 @@ type Request struct {
 	body    stringer
 	header  stringerMap
 	query   stringerMap
+	secrets stringerMap
 
 	respBodyBuf    []byte
 	respBodyParser fastjson.Parser
@@ -69,7 +70,7 @@ func (d defaultDoer) Do(r *http.Request) (*http.Response, error) {
 
 // New creates a new *Request
 func New(url interface{}) *Request {
-	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: &defaultDoer{doer: http.DefaultClient}}
+	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: &defaultDoer{doer: http.DefaultClient}, secrets: map[string]stringer{}}
 	return c.Url(url).Path("")
 }
 
@@ -78,11 +79,22 @@ const (
 )
 
 func (req *Request) toStringer(v interface{}) stringer {
+	return req._toStringer(v, false)
+}
+
+func (req *Request) _toStringer(v interface{}, secret bool) stringer {
 	s := toStringer(v)
 	if s == nil {
 		req.setErr(fmt.Errorf("can not convert %v to stringer", v))
 	}
-	return s
+
+	if secret {
+		var key = fmt.Sprintf("MASKED_%d", len(req.secrets)+1)
+		req.Secret(key, s)
+		return toStringer(SecretKey(key))
+	} else {
+		return s
+	}
 }
 
 func (req *Request) setErr(err error) {
@@ -94,6 +106,21 @@ func (req *Request) setErr(err error) {
 // Header sets a http header
 func (req *Request) Header(key string, value interface{}) *Request {
 	req.header[key] = req.toStringer(value)
+	return req
+}
+
+// SecretHeader sets a http header
+func (req *Request) SecretHeader(key string, value interface{}) *Request {
+	req.header[key] = req._toStringer(value, true)
+	return req
+}
+
+func SecretKey(key string) string {
+	return "${" + key + "}"
+}
+
+func (req *Request) Secret(key string, value interface{}) *Request {
+	req.secrets[SecretKey(key)] = req.toStringer(value)
 	return req
 }
 

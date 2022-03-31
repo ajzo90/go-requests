@@ -29,7 +29,7 @@ func TestX(t *testing.T) {
 	testReq(t, req, `GET example.com/test?key=val HTTP/1.1
 Host: 
 User-Agent: Go-http-client/1.1
-Authorization: Basic dXNlcjpzZWNyZXQ=
+Authorization: ${MASKED_1}
 Token: secret
 
 `)
@@ -39,7 +39,7 @@ Token: secret
 	testReq(t, req.Extended().Clone(), `GET example.com/test?key=val HTTP/1.1
 Host: 
 User-Agent: Go-http-client/1.1
-Authorization: Basic dXNlcjpzZWNyZXQ=
+Authorization: ${MASKED_1}
 Token: super-secret
 
 `)

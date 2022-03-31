@@ -28,42 +28,58 @@ func (req *Request) WithExtended(f func(request *ExtendedRequest)) *Request {
 
 // Write writes the request into w
 func (req *ExtendedRequest) Write(w io.Writer) error {
-	r, err := req.NewRequestContext(context.Background())
+	r, err := req.NewRequestContext(context.Background(), true)
 	if err != nil {
 		return err
 	}
 	return r.Write(w)
 }
 
-func (req *ExtendedRequest) fullUrl() string {
-	base := req.baseUrl.String()
-	if p := req.path.String(); p != "" {
+func (req *ExtendedRequest) fullUrl(render func(stringer) string) string {
+	base := render(req.baseUrl)
+	if p := render(req.path); p != "" {
 		return strings.TrimRight(base, "/") + "/" + strings.TrimLeft(p, "/")
 	}
 	return base
 }
 
+func (req *ExtendedRequest) renderFn(masked bool) func(st stringer) string {
+	return func(st stringer) string {
+		s := st.String()
+		for k, v := range req.secrets {
+			var str = v.String()
+			if masked {
+				s = strings.ReplaceAll(s, k, strings.Repeat("*", len(str)))
+			} else {
+				s = strings.ReplaceAll(s, k, str)
+			}
+		}
+		return s
+	}
+}
+
 // NewRequestContext builds a *http.Request
-func (req *ExtendedRequest) NewRequestContext(ctx context.Context) (*http.Request, error) {
+func (req *ExtendedRequest) NewRequestContext(ctx context.Context, masked bool) (*http.Request, error) {
 	if req.method == nil {
 		req.method = toStringer(http.MethodGet)
 	}
 	if err := req.err; err != nil {
 		return nil, err
 	}
+	var renderer = req.renderFn(masked)
 
 	var body io.Reader
 	if req.body != nil {
-		body = bytes.NewReader([]byte(req.body.String()))
+		body = bytes.NewReader([]byte(renderer(req.body)))
 	}
 
-	request, err := http.NewRequestWithContext(ctx, req.method.String(), req.fullUrl(), body)
+	request, err := http.NewRequestWithContext(ctx, renderer(req.method), req.fullUrl(renderer), body)
 	if err != nil {
 		return nil, err
 	}
 
 	for k, v := range req.header {
-		request.Header.Add(k, v.String())
+		request.Header.Add(k, renderer(v))
 	}
 
 	if len(req.query) > 0 {
@@ -72,7 +88,7 @@ func (req *ExtendedRequest) NewRequestContext(ctx context.Context) (*http.Reques
 		}
 		q := request.URL.Query()
 		for k, v := range req.query {
-			q.Add(k, v.String())
+			q.Add(k, renderer(v))
 		}
 		request.URL.RawQuery = q.Encode()
 	}
@@ -95,7 +111,7 @@ func (req *ExtendedRequest) Do(ctxs ...context.Context) (*http.Response, error) 
 		defer cancel()
 	}
 
-	request, err := req.NewRequestContext(ctx)
+	request, err := req.NewRequestContext(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -130,5 +146,6 @@ func (req *ExtendedRequest) Clone() *Request {
 	newClient.timeout = req.timeout
 	req.header.CopyTo(newClient.header)
 	req.query.CopyTo(newClient.query)
+	req.secrets.CopyTo(newClient.secrets)
 	return newClient
 }
