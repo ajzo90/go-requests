@@ -1,7 +1,7 @@
 package requests
 
-// copied from https://github.com/valyala/fasthttp
-// https://github.com/valyala/fasthttp/blob/master/LICENSE
+// SOURCE: https://github.com/valyala/fasthttp/blob/d4c739eee589f96f10f07f05db40f1cfb5ad0bd9/timer.go
+// LICENCE: https://github.com/valyala/fasthttp/blob/d4c739eee589f96f10f07f05db40f1cfb5ad0bd9/LICENSE
 
 /*
 The MIT License (MIT)
