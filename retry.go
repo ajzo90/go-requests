@@ -250,14 +250,18 @@ func retryErr(resp *http.Response, err error) (bool, error) {
 }
 
 func sleepUntil(ctx context.Context, until time.Time) error {
-	d := -time.Since(until)
+	d := time.Until(until)
 	if d < 0 {
 		return nil
 	}
+
+	var t = AcquireTimer(d)
+	defer ReleaseTimer(t)
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case <-time.After(d):
+	case <-t.C:
 		return nil
 	}
 }
