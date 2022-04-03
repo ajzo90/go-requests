@@ -11,8 +11,9 @@ import (
 // JSONResponse is holding the JSON specific response
 type JSONResponse struct {
 	response
-	v *fastjson.Value
-	p fastjson.Parser
+	v   *fastjson.Value
+	p   fastjson.Parser
+	buf []byte
 }
 
 // String get string from JSON body
@@ -83,5 +84,4 @@ func (r *response) Header(key string) string {
 
 type response struct {
 	raw *http.Response
-	buf []byte
 }
