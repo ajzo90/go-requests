@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/valyala/fastjson"
 )
 
 // Request hold the request builder data
@@ -18,9 +16,7 @@ type Request struct {
 	query   stringerMap
 	secrets stringerMap
 
-	respBodyBuf    []byte
-	respBodyParser fastjson.Parser
-	timeout        time.Duration
+	timeout time.Duration
 
 	err  error
 	doer Doer // this doer should do all error handling, if it returns err=nil we are ready to use the payload

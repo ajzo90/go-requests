@@ -12,6 +12,7 @@ import (
 type JSONResponse struct {
 	response
 	v *fastjson.Value
+	p fastjson.Parser
 }
 
 // String get string from JSON body
@@ -38,24 +39,42 @@ func (req *Request) doJSON(ctxs ...context.Context) (*http.Response, error) {
 	return req.Header("accept", applicationJSON).Extended().Do(ctxs...)
 }
 
-// ExecJSON executes the request and return a *JSONResponse
-func (req *Request) ExecJSON(ctxs ...context.Context) (*JSONResponse, error) {
+// ExecJSONPreAlloc executes the request and fill jsonResp
+func (req *ExtendedRequest) ExecJSONPreAlloc(jsonResp *JSONResponse, ctxs ...context.Context) error {
 	resp, err := req.doJSON(ctxs...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
-	req.respBodyBuf, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	if resp.ContentLength == 0 {
+		// do nothing
+	} else if resp.ContentLength > 0 {
+		if cap(jsonResp.buf) >= int(resp.ContentLength) {
+			jsonResp.buf = jsonResp.buf[:resp.ContentLength]
+		} else {
+			jsonResp.buf = make([]byte, resp.ContentLength)
+		}
+		_, err = io.ReadFull(resp.Body, jsonResp.buf)
+	} else {
+		jsonResp.buf, err = io.ReadAll(resp.Body)
 	}
 
-	jsonResp := &JSONResponse{response: response{raw: resp}}
+	if err != nil {
+		return err
+	}
 
-	jsonResp.v, err = req.respBodyParser.ParseBytes(req.respBodyBuf)
+	jsonResp.response.raw = resp
+	jsonResp.v, err = jsonResp.p.ParseBytes(jsonResp.buf)
 
-	return jsonResp, err
+	return err
+}
+
+// ExecJSON executes the request and return a *JSONResponse
+func (req *Request) ExecJSON(ctxs ...context.Context) (*JSONResponse, error) {
+	var r JSONResponse
+	var err = req.Extended().ExecJSONPreAlloc(&r, ctxs...)
+	return &r, err
 }
 
 func (r *response) Header(key string) string {
@@ -64,4 +83,5 @@ func (r *response) Header(key string) string {
 
 type response struct {
 	raw *http.Response
+	buf []byte
 }
