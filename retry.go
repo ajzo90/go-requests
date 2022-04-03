@@ -125,11 +125,13 @@ func (r *Retryer) Do(request *http.Request) (_ *http.Response, err error) {
 			return nil, err
 		}
 
-		request.Body, err = request.GetBody()
-		if err != nil {
-			return nil, err
-		} else if request.Body == nil {
-			return nil, errCanNotResetBody
+		if request.Method != http.MethodGet {
+			request.Body, err = request.GetBody()
+			if err != nil {
+				return nil, err
+			} else if request.Body == nil {
+				return nil, errCanNotResetBody
+			}
 		}
 
 		resp, err := r.doer.Do(request)
