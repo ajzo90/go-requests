@@ -207,15 +207,13 @@ func DefaultRetryPolicy(resp *http.Response, err error) (bool, error) {
 }
 
 func retryStatus(resp *http.Response) (bool, error) {
-	if resp.StatusCode == http.StatusTooManyRequests {
+	if resp.StatusCode == 200 {
+		return false, nil
+	} else if resp.StatusCode == http.StatusTooManyRequests {
 		return true, fmt.Errorf("too many requests")
 	}
-
-	if resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented) {
-		return true, fmt.Errorf("unexpected HTTP status %s", resp.Status)
-	}
-
-	return false, nil
+	var retry = resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented)
+	return retry, fmt.Errorf("unexpected HTTP status %s", resp.Status)
 }
 
 var (
