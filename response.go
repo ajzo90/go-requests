@@ -73,7 +73,7 @@ func (req *ExtendedRequest) ExecJSONPreAlloc(jsonResp *JSONResponse, ctxs ...con
 // ExecJSON executes the request and return a *JSONResponse
 func (req *Request) ExecJSON(ctxs ...context.Context) (*JSONResponse, error) {
 	var r JSONResponse
-	var err = req.Extended().ExecJSONPreAlloc(&r, ctxs...)
+	err := req.Extended().ExecJSONPreAlloc(&r, ctxs...)
 	return &r, err
 }
 

@@ -51,7 +51,7 @@ func AcquireTimer(timeout time.Duration) *time.Timer {
 	if v == nil {
 		return time.NewTimer(timeout)
 	}
-	t := v.(*time.Timer)
+	t, _ := v.(*time.Timer)
 	initTimer(t, timeout)
 	return t
 }

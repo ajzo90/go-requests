@@ -212,7 +212,7 @@ func retryStatus(resp *http.Response) (bool, error) {
 	} else if resp.StatusCode == http.StatusTooManyRequests {
 		return true, fmt.Errorf("too many requests")
 	}
-	var retry = resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented)
+	retry := resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented)
 	return retry, fmt.Errorf("unexpected HTTP status %s", resp.Status)
 }
 
@@ -255,7 +255,7 @@ func sleepUntil(ctx context.Context, until time.Time) error {
 		return nil
 	}
 
-	var t = AcquireTimer(d)
+	t := AcquireTimer(d)
 	defer ReleaseTimer(t)
 
 	select {
