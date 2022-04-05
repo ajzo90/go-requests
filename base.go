@@ -3,6 +3,7 @@ package requests
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -54,6 +55,22 @@ func (d defaultDoer) Do(r *http.Request) (*http.Response, error) {
 func New(url interface{}) *Request {
 	c := &Request{header: map[string]stringer{}, query: map[string]stringer{}, doer: &defaultDoer{doer: http.DefaultClient}, secrets: map[string]stringer{}}
 	return c.Url(url).Path("")
+}
+
+func FromRawURL(rawUrl string) (*Request, error) {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return nil, err
+	}
+	q, fragment := u.Query(), u.Fragment
+	_ = fragment // todo: use fragment
+	u.RawQuery, u.Fragment = "", ""
+
+	var req = New(u.String())
+	for k, v := range q {
+		req.Query(k, v[0])
+	}
+	return req, nil
 }
 
 const (
