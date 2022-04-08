@@ -12,8 +12,12 @@ import (
 type JSONResponse struct {
 	response
 	v   *fastjson.Value
-	p   fastjson.Parser
+	p   JSONParser
 	buf []byte
+}
+
+func (r *JSONResponse) SetParser(p JSONParser) {
+	r.p = p
 }
 
 // String get string from JSON body
@@ -66,9 +70,16 @@ func (req *ExtendedRequest) ExecJSONPreAlloc(jsonResp *JSONResponse, ctxs ...con
 	}
 
 	jsonResp.response.raw = resp
+	if jsonResp.p == nil {
+		jsonResp.p = &fastjson.Parser{}
+	}
 	jsonResp.v, err = jsonResp.p.ParseBytes(jsonResp.buf)
 
 	return err
+}
+
+type JSONParser interface {
+	ParseBytes([]byte) (*fastjson.Value, error)
 }
 
 // ExecJSON executes the request and return a *JSONResponse
