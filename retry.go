@@ -57,7 +57,7 @@ func WithRetryPolicy(policy RetryPolicy) RetryerOption {
 }
 
 func NewRetryer(doer Doer, logger RequestLogger, opts ...RetryerOption) Doer {
-	var o = retryerOption{
+	o := retryerOption{
 		retryPolicy: DefaultRetryPolicy,
 	}
 	for _, opt := range opts {

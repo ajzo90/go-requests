@@ -66,7 +66,7 @@ func FromRawURL(rawUrl string) (*Request, error) {
 	_ = fragment // todo: use fragment
 	u.RawQuery, u.Fragment = "", ""
 
-	var req = New(u.String())
+	req := New(u.String())
 	for k, v := range q {
 		req.Query(k, v[0])
 	}
