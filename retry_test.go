@@ -16,6 +16,15 @@ var doer = requests.NewRetryer(http.DefaultClient, requests.Logger(func(id int, 
 	log.Println(id, err, msg)
 }))
 
+var doerWithRetryPolicy = requests.NewRetryerWithRetryPolicy(http.DefaultClient, requests.Logger(func(id int, err error, msg string) {
+	log.Println(id, err, msg)
+}), func(resp *http.Response, err error) (bool, error) {
+	if resp.StatusCode == http.StatusInternalServerError {
+		return true, err
+	}
+	return false, nil
+})
+
 func TestRetryer_Do(t *testing.T) {
 	var attempt int
 	withTestServer(t, func(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +50,34 @@ func TestRetryer_Do(t *testing.T) {
 				req.Doer(doer)
 				req.Secret("key", "secret")
 				req.Timeout(time.Second * 6)
+				_ = req.Write(os.Stdout)
+			})
+
+		resp, err := req.ExecJSON()
+		is := is.New(t)
+		is.NoErr(err)
+		is.Equal(resp.String(), "hello")
+		is.Equal(resp.Header("foo"), "bar")
+	})
+}
+
+func TestNewRetryerWithRetryPolicy_Do(t *testing.T) {
+	var attempt int
+	withTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		attempt++
+		if attempt < 2 {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Add("foo", "bar")
+		io.Copy(w, r.Body)
+	}, func(t *testing.T, url string) {
+		req := requests.New(url).
+			Method(http.MethodGet).
+			Path("/foo/bar").
+			JSONBody("hello").
+			WithExtended(func(req *requests.ExtendedRequest) {
+				req.Doer(doerWithRetryPolicy)
 				_ = req.Write(os.Stdout)
 			})
 
