@@ -63,11 +63,7 @@ func NewRetryer(doer Doer, logger RequestLogger, opts ...RetryerOption) Doer {
 	for _, opt := range opts {
 		opt(&o)
 	}
-	return &Retryer{doer: doer, backoff: backoff, sharedBackoff: DefaultSharedBackoff, retryPolicy: DefaultRetryPolicy, drainer: drain, logger: logger}
-}
-
-func NewRetryerWithRetryPolicy(doer Doer, logger RequestLogger, retryPolicy func(*http.Response, error) (bool, error)) Doer {
-	return &Retryer{doer: doer, backoff: backoff, sharedBackoff: DefaultSharedBackoff, retryPolicy: retryPolicy, drainer: drain, logger: logger}
+	return &Retryer{doer: doer, backoff: backoff, sharedBackoff: DefaultSharedBackoff, retryPolicy: o.retryPolicy, drainer: drain, logger: logger}
 }
 
 type Backoffer interface {
