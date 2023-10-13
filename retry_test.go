@@ -12,18 +12,19 @@ import (
 	"github.com/matryer/is"
 )
 
-var doer = requests.NewRetryer(http.DefaultClient, requests.Logger(func(id int, err error, msg string) {
+var logger = requests.Logger(func(id int, err error, msg string) {
 	log.Println(id, err, msg)
-}))
+})
 
-var doerWithRetryPolicy = requests.NewRetryerWithRetryPolicy(http.DefaultClient, requests.Logger(func(id int, err error, msg string) {
-	log.Println(id, err, msg)
-}), func(resp *http.Response, err error) (bool, error) {
+var doer = requests.NewRetryer(http.DefaultClient, logger)
+
+var retryerOption = requests.WithRetryPolicy(func(resp *http.Response, err error) (bool, error) {
 	if resp.StatusCode == http.StatusInternalServerError {
 		return true, err
 	}
 	return false, nil
 })
+var doerWithRetryPolicy = requests.NewRetryer(http.DefaultClient, logger, retryerOption)
 
 func TestRetryer_Do(t *testing.T) {
 	var attempt int
