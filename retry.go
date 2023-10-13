@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+type RetryPolicy func(*http.Response, error) (bool, error)
+
 type Retryer struct {
 	doer    Doer
 	nextTry time.Time
@@ -22,7 +24,7 @@ type Retryer struct {
 
 	backoff       func() Backoffer
 	sharedBackoff Backoffer
-	retryPolicy   func(*http.Response, error) (bool, error)
+	retryPolicy   RetryPolicy
 
 	drainer func(io.ReadCloser) error
 	logger  RequestLogger
@@ -42,7 +44,25 @@ type RequestLogger interface {
 	Log(id int, err error, msg string)
 }
 
-func NewRetryer(doer Doer, logger RequestLogger) Doer {
+type retryerOption struct {
+	retryPolicy RetryPolicy
+}
+
+type RetryerOption func(*retryerOption)
+
+func WithRetryPolicy(policy RetryPolicy) RetryerOption {
+	return func(option *retryerOption) {
+		option.retryPolicy = policy
+	}
+}
+
+func NewRetryer(doer Doer, logger RequestLogger, opts ...RetryerOption) Doer {
+	o := retryerOption{
+		retryPolicy: DefaultRetryPolicy,
+	}
+	for _, opt := range opts {
+		opt(&o)
+	}
 	return &Retryer{doer: doer, backoff: backoff, sharedBackoff: DefaultSharedBackoff, retryPolicy: DefaultRetryPolicy, drainer: drain, logger: logger}
 }
 
